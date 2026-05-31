@@ -1,0 +1,81 @@
+#Step 1 — Azure Setup
+
+Created Azure for Students account (Southeast Asia region)
+Created Resource Group: rg-dev-bank-p1
+All services created inside this resource group
+
+Step 2 — ADLS Gen2 Storage Account 1 (Bronze)
+
+Searched "Storage Account" in Azure Portal
+Enabled Hierarchical Namespace → makes it ADLS Gen2
+Created containers:
+
+bulk → client uploads raw CSV files here
+inputcontainer → ADF drops Parquet files here
+
+
+Redundancy: LRS (cost optimized for dev)
+
+Step 3 — ADLS Gen2 Storage Account 2 (Silver)
+
+Same setup as Storage Account 1
+Created container: output → Databricks writes Delta files here
+Hierarchical Namespace enabled
+
+Step 4 — Azure Databricks
+
+Created Serverless workspace
+Serverless = no manual cluster management
+Auto starts when notebook runs, auto stops after inactivity
+
+Step 5 — Azure Data Factory
+
+Created ADF instance
+Git configuration skipped (dev environment)
+Built pipeline: PL_CSV_PARQUET
+
+Copy Activity: reads CSV from bulk → writes Parquet to inputcontainer
+Linked Service: LS_CSV_PARQUET_SRC (Enter manually for security)
+Integration Runtime: AutoResolve (cloud to cloud)
+Schedule trigger added for automation
+
+
+Also built: PL_JSON_PARQUET for JSON sources (for future implementation)
+
+Step 6 — App Registration (Service Principal)
+
+Created App Registration: appBANKproject
+Collected 3 credentials:
+
+Application (Client) ID
+Directory (Tenant) ID
+Client Secret Value
+
+
+Note: Never hardcode credentials in production — use Key Vault
+
+Step 7 — IAM Role Assignment
+
+Gave Databricks access to BOTH storage accounts
+Role: Storage Blob Data Contributor
+
+Can read ✅ write ✅ delete ✅
+Cannot manage storage settings ❌ (Principle of Least Privilege)
+
+
+Done via: Storage Account → Access Control (IAM) → Add Role Assignment
+
+Step 8 — Databricks Transformation
+
+Created notebook: CSVCONNECTION
+Used .option() OAuth authentication (modern approach, works with Serverless)
+Read Parquet from ADLS 1
+Filtered premium customers: credit_score > 800 & calculated total premium customers.
+Wrote results to ADLS 2 in Delta format
+
+Step 9 — Databricks Job Scheduling
+
+Created Databricks Job: Transform_Bank_Data
+Task: runs transformation notebook
+Schedule: every 1 day (automated)
+Tested with "Run now" → Succeeded in 45 seconds ✅
