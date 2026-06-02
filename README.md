@@ -142,6 +142,5 @@ Build an end-to-end Azure Data Engineering solution to process customer data fro
 * Simulates a real-world banking use case by identifying premium customers based on business rules.
 
 ## Tech Stack
-Azure Data Factory · ADLS Gen2 · Azure Databricks · Delta Lake · PySpark · Python · Azure App Registration give me logos of each beside 
-
+Azure Data Factory · ADLS Gen2 · Azure Databricks · Delta Lake · PySpark · Python · Azure App Registration 
 
